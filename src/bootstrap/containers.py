@@ -1,9 +1,11 @@
 from dependency_injector import containers, providers
 
 from src.modules.analytics.infrastructure.analytics_adapter import AnalyticsAdapter
+from src.modules.request_validator.infrastructure.request_validator_adapter import RequestValidatorAdapter
 from src.modules.analytics.application.use_cases.execute_analytics import (
     ExecuteAnalytics,
 )
+from src.modules.request_validator.application.use_cases.validate_request import ExecuteValidateRequest
 
 from src.modules.cost_engine.infrastructure.cost_engine_adapter import CostEngineAdapter
 from src.modules.cost_engine.application.use_cases.execute_cost_engine import (
@@ -24,38 +26,30 @@ class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(packages=["src.api"])
 
     # ---- Adapters (infrastructure) ----
-
-    analytics_adapter = providers.Singleton(
-        AnalyticsAdapter,
-    )
-
-    cost_engine_adapter = providers.Singleton(
-        CostEngineAdapter,
-    )
-
-    budget_manager_adapter = providers.Singleton(
-        BudgetManagerAdapter,
-    )
+    analytics_adapter = providers.Singleton(AnalyticsAdapter,)
+    cost_engine_adapter = providers.Singleton(CostEngineAdapter,)
+    budget_manager_adapter = providers.Singleton(BudgetManagerAdapter,)
+    request_validator_adapter = providers.Singleton(RequestValidatorAdapter,)
 
     # ---- Use cases (application) ----
-
     analytics_use_case = providers.Factory(
         ExecuteAnalytics,
         port=analytics_adapter,
     )
-
     cost_engine_use_case = providers.Factory(
         ExecuteCostEngine,
         port=cost_engine_adapter,
     )
-
     budget_manager_use_case = providers.Factory(
         ExecuteBudgetManager,
         port=budget_manager_adapter,
     )
+    request_validator_use_case = providers.Factory(
+        ExecuteValidateRequest,
+        port=request_validator_adapter,
+    )
 
     # ---- Orchestrator (bouncer) ----
-
     process_request = providers.Factory(
         ProcessRequest,
         analytics=analytics_use_case,

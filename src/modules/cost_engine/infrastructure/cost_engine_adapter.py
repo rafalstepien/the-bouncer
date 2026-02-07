@@ -1,7 +1,7 @@
-from src.modules.cost_engine.application.ports import Cost_enginePort
+from src.modules.cost_engine.application.ports import CostEnginePort
 
 
-class CostEngineAdapter(Cost_enginePort):
+class CostEngineAdapter(CostEnginePort):
     def execute(self, data):
         # concrete implementation
         ...
