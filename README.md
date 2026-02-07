@@ -6,21 +6,25 @@ These things are possible as future extensions, but won't be implemented, becaus
 
 ### Analytics collection 
 Metrics should be emited via HTTP to some aggregation service (eg. Prometheus) and later visualized (eg. Grafana).
+
 **Decision:** TBA
 
 ### Counting consumed tokens
 We have two options to verify consumed tokens:
   - Option 1: Based only on estimated tokens. Prioritizes efficiency (simpler and faster system). 
   - Option 2: Based on estimated tokens + later updated by the actual number of tokens used. Requires pipelines to send additional data, requires the service to have additional endpoints, minimizes the risk of over/under estimation. 
+
 **Decision:** Verification will be based only on estimated tokens with a room for extension later (addressing "Failure thinking: token estimates are wrong") from the requirements. From the description I assume that the business goal is mainly to prevent unexpected spikes of costs and not counting the exact number of tokens consumed. Until we keep estimates good enough, we don't have to complicate system with additional dependencies and prioritize faster development, simpler onboarding and less infrastructure overhead.
 
 ### Additional sophisticated mechanisms
 There is a room for "competing" mechanism, for example if the global budget is exhausted, `P0` request comes in, and other, low-prio requests are still running (`P1`, `P2`), then the service could kill/revoke running requests.
 There is a room for "borrowing" mechanism, for example if the budget of "monitoring" is exhausted, but "enrichment" has free tokens to use, then "monitoring" could use "enrichment" budget.
+
 **Decision:** I will not implement those mechanisms, but I will leave the room for implementation in the future. It's good to think about the possible future use cases, but the task does not explicitly state any of such problems for now. There are more "optimization strategies", but the decision can be made later if we implement the service and spot some inefficiencies.
 
 ### Pipeline hierarchy
 I noticed, that some pipelines can be more important than others. For example "monitoring" could be more important than "ranking", because it's more important to have better visibility into how tenders change instead of displaying them in correct order in the UI. In other words: not detecting a change in requirement of tender that is in progress is more serious than displaying "10 good fitting tenders for your company" in incorrect order.
+
 **Decision:** Priority (P0/P1/P2) is the only ordering mechanism.
 
 
