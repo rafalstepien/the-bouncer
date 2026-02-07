@@ -3,17 +3,40 @@
 
 ## Limitations
 These things are possible as future extensions, but won't be implemented, because in the description, the service is expected to be "small" and there are time limit constraints.
-- Analytics collection service: metrics will be emited to a simple log file, that we can parse. Separate metric aggregator UI can parse this file.
-- Verification of consumed tokens is based solely on estimated number of tokens coming in the request. This optimizes efficiency, not accuracy. In the future we could extend the service to accept the actual number of computed tokens on separate endpoint, and make pipelines be able to send this information. This can minimize the risk of over/under estimation.
-- There is a room for "competing" mechanism. **Example:** If the global budget is exhausted, `P0` request comes in, and other, low-prio requests are still running (`P1`, `P2`), then the service will can kill/revoke running requests.
-- There is a room for "borrowing" mechanism. **Example:** If the budget of "monitoring" is exhausted, but "enrichment" has tokens to use, then "monitoring" could use "enrichment" budget.
-- Pipeline hierarchy: some pipelines seem to be more important than others (eg. "monitoring" should be more important than "ranking", because if monitoring request is rejected we lose visibility, which feels more important than ordering in the UI). This will be always handled via priorities (P0/P1/P2).
-- Decision what to do with `ALLOW_DEGRADED` service response should be made in the pipeline. Service does not care if pipeline will use cheaper model or shorter prompt.
-- We have two decisions to make when `the-bouncer` is down:
+
+### Analytics collection 
+Metrics should be emited via HTTP to some aggregation service (eg. Prometheus) and later visualized (eg. Grafana).
+**Decision:** TBA
+
+### Counting consumed tokens
+We have two options to verify consumed tokens:
+  - Option 1: Based only on estimated tokens. Prioritizes efficiency (simpler and faster system). 
+  - Option 2: Based on estimated tokens + later updated by the actual number of tokens used. Requires pipelines to send additional data, requires the service to have additional endpoints, minimizes the risk of over/under estimation. 
+**Decision:** Verification will be based only on estimated tokens with a room for extension later (addressing "Failure thinking: token estimates are wrong") from the requirements. From the description I assume that the business goal is mainly to prevent unexpected spikes of costs and not counting the exact number of tokens consumed. Until we keep estimates good enough, we don't have to complicate system with additional dependencies and prioritize faster development, simpler onboarding and less infrastructure overhead.
+
+### Additional sophisticated mechanisms
+There is a room for "competing" mechanism, for example if the global budget is exhausted, `P0` request comes in, and other, low-prio requests are still running (`P1`, `P2`), then the service could kill/revoke running requests.
+There is a room for "borrowing" mechanism, for example if the budget of "monitoring" is exhausted, but "enrichment" has free tokens to use, then "monitoring" could use "enrichment" budget.
+**Decision:** I will not implement those mechanisms, but I will leave the room for implementation in the future. It's good to think about the possible future use cases, but the task does not explicitly state any of such problems for now. There are more "optimization strategies", but the decision can be made later if we implement the service and spot some inefficiencies.
+
+### Pipeline hierarchy
+I noticed, that some pipelines can be more important than others. For example "monitoring" could be more important than "ranking", because it's more important to have better visibility into how tenders change instead of displaying them in correct order in the UI. In other words: not detecting a change in requirement of tender that is in progress is more serious than displaying "10 good fitting tenders for your company" in incorrect order.
+**Decision:** Priority (P0/P1/P2) is the only ordering mechanism.
+
+
+### What to do with degraded response 
+**Decision:** What to do with `ALLOW_DEGRADED` service response will be made in the pipelines. Service does not care if pipeline will use cheaper model or shorter prompt.
+
+
+### What to do when the service is down
+We have two options there:
   - Option 1: Fail open. Pipelines send requests without the service as midddleman (priority: continuity of work). Disadvantage: we may exceed the budget and don't know about it.
   - Option 2: Fail closed. Pipelines can't send any request without the service (priority: budget safety). Disadvantage: when the service is down, pipelines can't process.
 
-## Scenarios
+**Decision:** TBA
+
+
+## Scenarios considered
 TOTAL_GLOBAL_BUDGET: 1,000,000
 TOTAL_SINGLE_PIPELINE_BUDGET: 250,000
 SOFT_LIMIT (when we start ALLOW_DEGRADED for P1/P2): 70%
