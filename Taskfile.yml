@@ -4,8 +4,8 @@ tasks:
   run-linters:
     desc: Run ruff to check, format, and sort imports.
     cmds:
-      - ruff check . --fix
-      - ruff format .
+      - uv run ruff check . --fix
+      - uv run ruff format .
     sources:
       - "**/*.py"
       - "pyproject.toml"
@@ -15,8 +15,8 @@ tasks:
   lint:check:
     desc: Run linters in "check-only" mode (useful for CI/CD pipelines).
     cmds:
-      - ruff check .
-      - ruff format --check .
+      - uv run ruff check .
+      - uv run ruff format --check .
 
 
   run-service:

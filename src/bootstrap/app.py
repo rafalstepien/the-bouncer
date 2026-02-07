@@ -1,8 +1,14 @@
 from fastapi import FastAPI
 from src.api import router
+from src.bootstrap.containers import Container
 
 
-def create_app():
+def create_app() -> FastAPI:
+    container = Container()
+    container.wire(modules=["src.api.endpoints"])
+
     app = FastAPI(title="Minerva Token Gatekeeper")
+    app.container = container
+
     app.include_router(router)
     return app
