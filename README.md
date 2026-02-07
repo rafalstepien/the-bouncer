@@ -37,11 +37,13 @@ We have two options there:
 
 
 ## Scenarios considered
-TOTAL_GLOBAL_BUDGET: 1,000,000
-TOTAL_SINGLE_PIPELINE_BUDGET: 250,000
-SOFT_LIMIT (when we start ALLOW_DEGRADED for P1/P2): 70%
-HARD_LIMIT (when we start to REJECT all or REJECT P1/P2): 90%
+### Setup
+- TOTAL_GLOBAL_BUDGET: 1,000,000
+- TOTAL_SINGLE_PIPELINE_BUDGET: 250,000
+- SOFT_LIMIT (when we start ALLOW_DEGRADED for P1/P2): 70%
+- HARD_LIMIT (when we start to REJECT all or REJECT P1/P2): 90%
 
+### Scenarios
 SCENARIO 1: STABLE LOAD P1/P2
 - global budget used in 0%, pipeline budget used in 0%
 - P1/P2 request comes in with 50,000 tokens
