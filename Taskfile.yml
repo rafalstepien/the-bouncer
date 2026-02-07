@@ -1,0 +1,25 @@
+version: '3'
+
+tasks:
+  run-linters:
+    desc: Run ruff to check, format, and sort imports.
+    cmds:
+      - ruff check . --fix
+      - ruff format .
+    sources:
+      - "**/*.py"
+      - "pyproject.toml"
+    generates:
+      - "**/*.py"
+
+  lint:check:
+    desc: Run linters in "check-only" mode (useful for CI/CD pipelines).
+    cmds:
+      - ruff check .
+      - ruff format --check .
+
+
+  run-service:
+    desc: "Run the service"
+    cmds:
+      - python3 -m src.bootstrap.run_service
