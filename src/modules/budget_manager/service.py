@@ -42,7 +42,7 @@ class DefaultBudgetManagerService(BaseBudgetManager):
                 current_pipeline_budget_usage=self._current_pipeline_budget_usage,
             )
 
-    def update_budget(self, tokens_used: int, pipeline: SourcePipeline) -> None:
+    def update_usage(self, tokens_used: int, pipeline: SourcePipeline) -> None:
         self._current_global_budget_usage += tokens_used
         self._current_pipeline_budget_usage[pipeline] += tokens_used
 

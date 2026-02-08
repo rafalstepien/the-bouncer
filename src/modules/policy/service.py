@@ -53,10 +53,10 @@ class DefaultPolicyService(BasePolicyService):
         decision = context.decide(dto.estimated_tokens, dto.priority)
 
         if decision == PolicyDecision.ALLOW:
-            self._budget_manager.update_budget(dto.estimated_tokens, dto.pipeline)
+            self._budget_manager.update_usage(dto.estimated_tokens, dto.pipeline)
         elif decision == PolicyDecision.ALLOW_DEGRADED:
             tokens_used = dto.estimated_tokens * self._degraded_discount
-            self._budget_manager.update_budget(tokens_used, dto.pipeline)
+            self._budget_manager.update_usage(tokens_used, dto.pipeline)
 
         return OutputPolicyServiceDTO(decision=decision)
 
