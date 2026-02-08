@@ -208,3 +208,9 @@ __marimo__/
 
 # Taskfile
 .task/
+
+# VScode
+.vscode/
+
+# Prompts
+prompt.txt
