@@ -9,13 +9,11 @@ class ServerSettings(BaseModel):
 
 
 class PolicySettings(BaseModel):
-    additional_p0_allowance: 0.5
+    additional_p0_allowance: float = 0.5
     soft_usage_limit: float = 0.85
     hard_usage_limit: float = 0.95
     degraded_discount: float = 0.5
-    whale_request_size: float = (
-        0.1  # min percentage of tokens used in single request that rejects the attempt
-    )
+    whale_request_size: float = 0.1
 
 
 class GlobalBudgetSettings(BaseModel):

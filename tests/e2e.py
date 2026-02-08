@@ -4,17 +4,16 @@ from functools import partial
 import aiohttp
 
 from src.api.schemas import AdmissionRequest, Priority
-from tests.commons import APP_SETTINGS, CHUNK_SIZE, EVALUATE_URL
+from tests.commons import APP_SETTINGS, EVALUATE_URL, CHUNK_SIZE
 from tests.utils import TestCase, fill_global_to_percent, fill_pipeline_to_percent
-
-NEAR_SOFT_LIMIT_PERCENTAGE = APP_SETTINGS.policy.soft_usage_limit - 0.01
-NEAR_HARD_LIMIT_PERCENTAGE = APP_SETTINGS.policy.hard_usage_limit - 0.01
-
 
 # If the budget is at its max, this is the number of tokens P0 requests can use additionally
 MAX_ALLOWANCE_TOKENS_FOR_P0 = (
     APP_SETTINGS.budget.global_settings.max_capacity * APP_SETTINGS.policy.additional_p0_allowance
 ) - 1
+NEAR_SOFT_LIMIT_PERCENTAGE = APP_SETTINGS.policy.soft_usage_limit - 0.01
+NEAR_HARD_LIMIT_PERCENTAGE = APP_SETTINGS.policy.hard_usage_limit - 0.01
+NEAR_ABSOLUTE_LIMIT_PERCENTAGE = 1.0 + APP_SETTINGS.policy.additional_p0_allowance - 0.03
 
 
 SCENARIOS = [
@@ -93,9 +92,9 @@ SCENARIOS = [
         description="Budget at max capacity, P0 request allowed if it exceeds budget within allowance",
         pipeline="enrichment",
         priority=Priority.P0,
-        tokens=MAX_ALLOWANCE_TOKENS_FOR_P0,
+        tokens=CHUNK_SIZE,
         expected_decision="ALLOW",
-        setup_function=partial(fill_global_to_percent, 1),
+        setup_function=partial(fill_global_to_percent, NEAR_ABSOLUTE_LIMIT_PERCENTAGE),
     ),
     TestCase(
         name="Scenario 10",
@@ -123,15 +122,6 @@ SCENARIOS = [
         tokens=CHUNK_SIZE + 300_000,
         expected_decision="REJECT",
     ),
-    # TestCase(
-    #     name="Scenario 10",
-    #     description="Retry Storm: Logic to reject if metadata indicates excessive retries.",
-    #     pipeline="ranking",
-    #     priority=Priority.P1,
-    #     tokens=1_000,
-    #     expected_decision="REJECT",
-    #     setup_function=setup_state__scenario_10 # Setup should inject retry headers/context
-    # )
 ]
 
 
@@ -157,7 +147,6 @@ async def main():
             success = await run_test(session, test_case)
             if success:
                 passed += 1
-
             await asyncio.sleep(APP_SETTINGS.budget.token_refill_interval_seconds + 5)
         print(f"Summary: {passed}/{len(SCENARIOS)} tests passed.")
 

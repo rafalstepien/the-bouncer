@@ -17,4 +17,5 @@ class SourcePipeline(StrEnum):
 class PolicyDecision(StrEnum):
     ALLOW = "ALLOW"
     ALLOW_DEGRADED = "ALLOW_DEGRADED"
+    ALLOW_OVERSPEND = "ALLOW_OVERSPEND"
     REJECT = "REJECT"

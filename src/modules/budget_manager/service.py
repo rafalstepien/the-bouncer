@@ -1,4 +1,5 @@
 import threading
+from contextlib import contextmanager
 from datetime import datetime
 
 from src.modules.budget_manager.dto import OutputCurrentBudgetDTO
@@ -6,7 +7,7 @@ from src.modules.budget_manager.interface import BaseBudgetManager
 from src.modules.commons import SourcePipeline
 
 
-class DefaultBudgetManagerService(BaseBudgetManager):
+class InMemoryBudgetManager(BaseBudgetManager):
     """
     With each request checks the time elapsed from last budget refill.
     If elapsed time is greater than the threshold (token_refill_interval_seconds), then budget is refilled to max.
@@ -27,28 +28,32 @@ class DefaultBudgetManagerService(BaseBudgetManager):
         self._token_refill_interval_seconds = token_refill_interval_seconds
 
         self._last_updated: datetime | None = None
-        self._current_global_budget_usage: int = 0
-        self._current_pipeline_budget_usage: dict[str, int] = {
-            p: 0 for p in self._pipeline_budget_max_capacity
-        }
+        self._global_budget_usage: int = 0
+        self._pipeline_budget_usage: dict[str, int] = {p: 0 for p in self._pipeline_budget_max_capacity}
 
         self._lock = threading.Lock()
 
-    def get_current_budget_usage(self) -> OutputCurrentBudgetDTO:
+    @contextmanager
+    def with_lock(self):
+        """Ensure atomic updates."""
         with self._lock:
-            self._refill_tokens()
-            return OutputCurrentBudgetDTO(
-                current_global_budget_usage=self._current_global_budget_usage,
-                current_pipeline_budget_usage=self._current_pipeline_budget_usage,
-            )
+            yield
+
+    def get_current_budget_usage(self) -> OutputCurrentBudgetDTO:
+        self._refill_tokens()
+        return OutputCurrentBudgetDTO(
+            current_global_budget_usage=self._global_budget_usage,
+            current_pipeline_budget_usage=self._pipeline_budget_usage,
+        )
 
     def update_usage(self, tokens_used: int, pipeline: SourcePipeline) -> None:
-        self._current_global_budget_usage += tokens_used
-        self._current_pipeline_budget_usage[pipeline] += tokens_used
+        self._global_budget_usage += tokens_used
+        self._pipeline_budget_usage[pipeline] += tokens_used
 
     def _refill_tokens(self):
         """
-        Check if time elapsed from last update exceeds the refill interval. If it does - reset the budget.
+        Check if time elapsed from last update exceeds the refill interval.
+        If it does - reset the budget.
         """
         if self._last_updated is None:
             self._last_updated = datetime.now()
@@ -57,6 +62,6 @@ class DefaultBudgetManagerService(BaseBudgetManager):
         now = datetime.now()
         time_elapsed = (now - self._last_updated).total_seconds()
         if time_elapsed > self._token_refill_interval_seconds:
-            self._current_global_budget_usage = 0
-            self._current_pipeline_budget_usage = {p: 0 for p in self._pipeline_budget_max_capacity}
+            self._global_budget_usage = 0
+            self._pipeline_budget_usage = {p: 0 for p in self._pipeline_budget_max_capacity}
             self._last_updated = now

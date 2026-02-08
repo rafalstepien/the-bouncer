@@ -9,6 +9,7 @@ SOFT_LIMIT = 0.70
 HARD_LIMIT = 0.90
 P0_ALLOWANCE = 0.20
 WHALE_THRESHOLD = 0.20
+WHALE_THRESHOLD_TOKENS = WHALE_THRESHOLD * GLOBAL_TOTAL
 AVERAGE_TOKEN_AMOUNT = 40_000
 
 
@@ -48,10 +49,20 @@ AVERAGE_TOKEN_AMOUNT = 40_000
             id="P1 request exceeds pipeline soft limit",
         ),
         pytest.param(
-            AVERAGE_TOKEN_AMOUNT, Priority.P0, 750_000, 187_500, PolicyDecision.ALLOW, id="P0 request, global soft limit exceeded"
+            AVERAGE_TOKEN_AMOUNT,
+            Priority.P0,
+            750_000,
+            187_500,
+            PolicyDecision.ALLOW,
+            id="P0 request, global soft limit exceeded",
         ),
         pytest.param(
-            AVERAGE_TOKEN_AMOUNT, Priority.P1, 890_000, 0, PolicyDecision.REJECT, id="P1 request exceeds global hard limit "
+            AVERAGE_TOKEN_AMOUNT,
+            Priority.P1,
+            890_000,
+            0,
+            PolicyDecision.REJECT,
+            id="P1 request exceeds global hard limit ",
         ),
         pytest.param(
             AVERAGE_TOKEN_AMOUNT,
@@ -96,8 +107,7 @@ def test_policy_scenarios(
     context = PolicyContext(
         global_budget=global_budget,
         pipeline_budget=pipeline_budget,
-        whale_global_threshold=WHALE_THRESHOLD,
-        whale_pipeline_threshold=WHALE_THRESHOLD,
+        whale_threshold_tokens=WHALE_THRESHOLD_TOKENS,
         additional_p0_allowance=P0_ALLOWANCE,
     )
     actual_decision = context.decide(estimated_tokens, priority)

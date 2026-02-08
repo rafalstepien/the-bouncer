@@ -4,7 +4,7 @@ from dependency_injector import containers, providers
 
 from src.bootstrap.configuration import LOGGING_CONFIG
 from src.modules.admission.use_case import AdmitLLMRequestUseCase
-from src.modules.budget_manager.service import DefaultBudgetManagerService
+from src.modules.budget_manager.service import InMemoryBudgetManager
 from src.modules.policy.service import DefaultPolicyService
 from src.modules.validation.service import DefaultRequestValidationService
 
@@ -21,7 +21,7 @@ class Container(containers.DeclarativeContainer):
         DefaultRequestValidationService,
     )
     budget_manager = providers.Singleton(
-        DefaultBudgetManagerService,
+        InMemoryBudgetManager,
         global_budget_max_capacity=config.budget.global_settings.max_capacity,
         pipeline_budget_max_capacity=config.budget.pipeline_settings.max_capacity,
         token_refill_interval_seconds=config.budget.token_refill_interval_seconds,
