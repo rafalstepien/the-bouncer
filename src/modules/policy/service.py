@@ -18,7 +18,7 @@ class DefaultPolicyService(BasePolicyService):
         hard_usage_limit: float,
         degraded_discount: float,
         whale_request_size: float,
-        additional_p0_allowance: float
+        additional_p0_allowance: float,
     ):
         self._budget_manager = budget_manager
         self._global_budget_max_capacity = global_budget_max_capacity
@@ -48,7 +48,7 @@ class DefaultPolicyService(BasePolicyService):
             whale_global_threshold=self._whale_request_size * self._global_budget_max_capacity,
             whale_pipeline_threshold=self._whale_request_size
             * self._pipeline_budget_max_capacity[dto.pipeline],
-            additional_p0_allowance=self._additional_p0_allowance
+            additional_p0_allowance=self._additional_p0_allowance,
         )
         decision = context.decide(dto.estimated_tokens, dto.priority)
 

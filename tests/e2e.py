@@ -12,7 +12,9 @@ NEAR_HARD_LIMIT_PERCENTAGE = APP_SETTINGS.policy.hard_usage_limit - 0.01
 
 
 # If the budget is at its max, this is the number of tokens P0 requests can use additionally
-MAX_ALLOWANCE_TOKENS_FOR_P0 = (APP_SETTINGS.budget.global_settings.max_capacity * APP_SETTINGS.policy.additional_p0_allowance) - 1
+MAX_ALLOWANCE_TOKENS_FOR_P0 = (
+    APP_SETTINGS.budget.global_settings.max_capacity * APP_SETTINGS.policy.additional_p0_allowance
+) - 1
 
 
 SCENARIOS = [

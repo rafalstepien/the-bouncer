@@ -65,4 +65,5 @@ docstring-code-line-length = "dynamic"
 [dependency-groups]
 dev = [
     "aiohttp>=3.13.3",
+    "pytest>=9.0.2",
 ]

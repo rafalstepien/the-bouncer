@@ -5,7 +5,7 @@ from src.modules.commons import Priority
 from src.modules.policy.dto import PolicyDecision
 
 LOW_PRIORITY_REQUESTS = (Priority.P1, Priority.P2)
-HIGH_PRIORITY_REQUESTS = (Priority.P0, )
+HIGH_PRIORITY_REQUESTS = (Priority.P0,)
 
 
 _LOGGER = logging.getLogger()
@@ -18,14 +18,21 @@ class Budget:
         self.hard_usage_limit = hard_usage_limit
         self.soft_usage_limit = soft_usage_limit
 
-    def evaluate_request(self, estimated_tokens: int, priority: Priority) -> PolicyDecision:
+    def evaluate_request(
+        self, estimated_tokens: int, priority: Priority, additional_p0_allowance: float
+    ) -> PolicyDecision:
         """
         Evaluate request against single budget
         """
         tokens_used_after_request = self.tokens_used + estimated_tokens
         percentage_of_tokens_used_after_request = tokens_used_after_request / self.total_limit
+        if percentage_of_tokens_used_after_request > self.hard_usage_limit + additional_p0_allowance:
+            return PolicyDecision.REJECT
 
-        if percentage_of_tokens_used_after_request > self.hard_usage_limit:
+        if (
+            percentage_of_tokens_used_after_request > self.hard_usage_limit
+            and priority in LOW_PRIORITY_REQUESTS
+        ):
             return PolicyDecision.REJECT
 
         if (
@@ -45,20 +52,24 @@ class PolicyContext:
     whale_pipeline_threshold: float
     additional_p0_allowance: float
 
-    def decide(self, tokens: int, priority: Priority) -> PolicyDecision:
+    def decide(self, estimated_tokens_usage: int, priority: Priority) -> PolicyDecision:
         """
         Check for requests that take significant amount of tokens in single call (whale).
         Check global and then individual pipeline policy to decide whether to allow request.
         """
-        if self._is_whale_request(tokens):
+        if self._is_whale_request(estimated_tokens_usage):
             _LOGGER.warning("Whale request attempt rejected with {} tokens, while capacity is {}")
             return PolicyDecision.REJECT
 
-        global_decision = self.global_budget.evaluate_request(tokens, priority)
+        global_decision = self.global_budget.evaluate_request(
+            estimated_tokens_usage, priority, self.additional_p0_allowance
+        )
         if global_decision == PolicyDecision.REJECT:
             return PolicyDecision.REJECT  # TODO: verify with business
 
-        pipeline_decision = self.pipeline_budget.evaluate_request(tokens, priority)
+        pipeline_decision = self.pipeline_budget.evaluate_request(
+            estimated_tokens_usage, priority, self.additional_p0_allowance
+        )
         return self._resolve_priority(global_decision, pipeline_decision)
 
     def _resolve_priority(self, d1: PolicyDecision, d2: PolicyDecision) -> PolicyDecision:
@@ -70,6 +81,6 @@ class PolicyContext:
 
     def _is_whale_request(self, estimated_tokens_usage: int) -> bool:
         return (
-            estimated_tokens_usage >= self.whale_global_threshold
-            or estimated_tokens_usage >= self.whale_pipeline_threshold
+            estimated_tokens_usage / self.global_budget.total_limit >= self.whale_global_threshold
+            or estimated_tokens_usage / self.pipeline_budget.total_limit >= self.whale_pipeline_threshold
         )
