@@ -7,7 +7,7 @@ from src.modules.validation.exceptions import RetryLimitExceededException
 from src.modules.validation.interface import BaseRequestValidationService
 
 
-class RequestValidationService(BaseRequestValidationService):
+class DefaultRequestValidationService(BaseRequestValidationService):
     def __init__(self):
         self._max_retries = 3
         self._cache_time_to_live = 5 * 60  # 5 minutes
@@ -17,6 +17,7 @@ class RequestValidationService(BaseRequestValidationService):
         self._handle_retry_loop(dto)
 
     def _handle_retry_loop(self, dto: AdmitLLMRequestUseCaseInputDTO) -> None:
+        # TODO: validate if single request is greater than the whole budget
         request_hash = self._get_request_hash(dto)
         current_attempts = self._retry_tracker.get(request_hash, 0) + 1
         self._retry_tracker[request_hash] = current_attempts
