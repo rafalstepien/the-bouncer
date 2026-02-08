@@ -37,5 +37,5 @@ We have two options there:
   - Option 1: Fail open. Pipelines send requests without the service as midddleman (priority: continuity of work). Disadvantage: we may exceed the budget and don't know about it.
   - Option 2: Fail closed. Pipelines can't send any request without the service (priority: budget safety). Disadvantage: when the service is down, pipelines can't process.
 
-**Decision:** TBA
+**Decision:** On the application level in case of any error inside app logic we allow the request without tracking (fail open)
 
