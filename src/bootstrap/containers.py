@@ -1,34 +1,13 @@
+import logging.config
+
 from dependency_injector import containers, providers
 
+from src.bootstrap.configuration import LOGGING_CONFIG
 from src.modules.admission.use_case import AdmitLLMRequestUseCase
 from src.modules.budget_manager.service import DefaultBudgetManagerService
 from src.modules.policy.service import DefaultPolicyService
 from src.modules.validation.service import DefaultRequestValidationService
-import logging.config
 
-LOGGING_CONFIG = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "%(levelname)-8s %(asctime)s [%(name)s:%(lineno)d] %(message)s",
-            "datefmt": "%Y-%m-%d %H:%M:%S",
-        },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
-            "level": "DEBUG",
-        },
-    },
-    "loggers": {
-        "": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-    },
-}
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
@@ -38,10 +17,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     wiring_config = containers.WiringConfiguration(packages=["src.api"])
-    logger = providers.Singleton(
-        logging.getLogger, 
-        name="app.core"
-    )
+    # logger = providers.Singleton(logging.getLogger, name="BouncerLogger")
     request_validator_service = providers.Factory(
         DefaultRequestValidationService,
     )
@@ -54,7 +30,6 @@ class Container(containers.DeclarativeContainer):
     policy_service = providers.Factory(
         DefaultPolicyService,
         budget_manager=budget_manager,
-        logger=logger,
         global_budget_max_capacity=config.budget.global_settings.max_capacity,
         pipeline_budget_max_capacity=config.budget.pipeline_settings.max_capacity,
         hard_usage_limit=config.policy.hard_usage_limit,
