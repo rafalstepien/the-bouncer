@@ -1,12 +1,17 @@
-from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends
+import logging
 
-from src.api.schemas import AdmissionRequest, AdmissionResponse
+from dependency_injector.wiring import Provide, inject
+from fastapi import APIRouter, Depends, Response, status
+
+from src.api.schemas import AdmissionDecision, AdmissionRequest, AdmissionResponse
 from src.bootstrap.containers import Container
 from src.modules.admission.dto import AdmitLLMRequestUseCaseInputDTO
 from src.modules.admission.use_case import AdmitLLMRequestUseCase
+from src.modules.policy.exceptions import InvalidPipelineError
 
 router = APIRouter()
+
+_LOGGER = logging.getLogger()
 
 
 @router.post("/v1/evaluate", response_model=AdmissionResponse)
@@ -16,8 +21,14 @@ async def evaluate(
     use_case: AdmitLLMRequestUseCase = Depends(Provide[Container.process_request]),
 ) -> AdmissionResponse:
     dto = _map_request_to_use_case_dto(request)
-    admission_response = use_case.execute(dto)
-    return AdmissionResponse(decision=admission_response.decision)
+    try:
+        admission_response = await use_case.execute(dto)
+        return AdmissionResponse(decision=admission_response.decision)
+    except InvalidPipelineError as e:
+        return Response(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+    except Exception as e:
+        _LOGGER.error(f"Service Failure: {e}", exc_info=True)
+        return AdmissionResponse(decision=AdmissionDecision.ALLOW)  # Fail open
 
 
 def _map_request_to_use_case_dto(request: AdmissionRequest) -> AdmitLLMRequestUseCaseInputDTO:

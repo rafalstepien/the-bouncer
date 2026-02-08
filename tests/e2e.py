@@ -4,7 +4,7 @@ from functools import partial
 import aiohttp
 
 from src.api.schemas import AdmissionRequest, Priority
-from tests.commons import APP_SETTINGS, EVALUATE_URL, CHUNK_SIZE
+from tests.commons import APP_SETTINGS, CHUNK_SIZE, EVALUATE_URL
 from tests.utils import TestCase, fill_global_to_percent, fill_pipeline_to_percent
 
 # If the budget is at its max, this is the number of tokens P0 requests can use additionally

@@ -17,8 +17,9 @@ class Container(containers.DeclarativeContainer):
     )
 
     wiring_config = containers.WiringConfiguration(packages=["src.api"])
-    request_validator_service = providers.Factory(
+    request_validator_service = providers.Singleton(
         DefaultRequestValidationService,
+        max_retries=config.policy.max_retries,
     )
     budget_manager = providers.Singleton(
         InMemoryBudgetManager,

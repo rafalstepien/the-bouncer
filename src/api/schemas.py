@@ -13,6 +13,7 @@ class AdmissionDecision(StrEnum):
     ALLOW = "ALLOW"
     ALLOW_DEGRADED = "ALLOW_DEGRADED"
     REJECT = "REJECT"
+    ERROR = "ERROR"
 
 
 class AdmissionRequest(BaseModel):
@@ -24,3 +25,4 @@ class AdmissionRequest(BaseModel):
 
 class AdmissionResponse(BaseModel):
     decision: AdmissionDecision
+    context: dict | None = None

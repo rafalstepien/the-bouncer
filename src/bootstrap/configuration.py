@@ -14,6 +14,7 @@ class PolicySettings(BaseModel):
     hard_usage_limit: float = 0.95
     degraded_discount: float = 0.5
     whale_request_size: float = 0.1
+    max_retries: int = 3
 
 
 class GlobalBudgetSettings(BaseModel):
@@ -29,7 +30,7 @@ class PipelineBudgetSettings(BaseModel):
 
 
 class BudgetSettings(BaseModel):
-    token_refill_interval_seconds: int = 20  # 60 * 60 * 24  # 1 day
+    token_refill_interval_seconds: int = 5  # 60 * 60 * 24  # 1 day
     global_settings: GlobalBudgetSettings = GlobalBudgetSettings()
     pipeline_settings: PipelineBudgetSettings = PipelineBudgetSettings()
 
