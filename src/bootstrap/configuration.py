@@ -9,10 +9,13 @@ class ServerSettings(BaseModel):
 
 
 class PolicySettings(BaseModel):
-    soft_usage_limit: float = 0.80
+    additional_p0_allowance: 0.50
+    soft_usage_limit: float = 0.85
     hard_usage_limit: float = 0.95
     degraded_discount: float = 0.5
-    whale_request_size: float = 0.2  # if the single request uses at least 20% of the budget - reject it
+    whale_request_size: float = (
+        0.1  # min percentage of tokens used in single request that rejects the attempt
+    )
 
 
 class GlobalBudgetSettings(BaseModel):
@@ -21,14 +24,14 @@ class GlobalBudgetSettings(BaseModel):
 
 class PipelineBudgetSettings(BaseModel):
     max_capacity: dict[str, int] = {
-        "monitoring": 500_000,
-        "enrichment": 300_000,
-        "ranking": 200_000,
+        "monitoring": 350_000,
+        "enrichment": 350_000,
+        "ranking": 300_000,
     }
 
 
 class BudgetSettings(BaseModel):
-    token_refill_interval_seconds: int = 15  # 60 * 60 * 24  # 1 day
+    token_refill_interval_seconds: int = 20  # 60 * 60 * 24  # 1 day
     global_settings: GlobalBudgetSettings = GlobalBudgetSettings()
     pipeline_settings: PipelineBudgetSettings = PipelineBudgetSettings()
 

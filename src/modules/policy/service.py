@@ -1,11 +1,12 @@
 import logging
+
 from src.modules.budget_manager.interface import BaseBudgetManager
 from src.modules.policy.domain import Budget, PolicyContext
 from src.modules.policy.dto import InputPolicyServiceDTO, OutputPolicyServiceDTO, PolicyDecision
 from src.modules.policy.interface import BasePolicyService
 
-
 _LOGGER = logging.getLogger()
+
 
 class DefaultPolicyService(BasePolicyService):
     def __init__(
@@ -17,6 +18,7 @@ class DefaultPolicyService(BasePolicyService):
         hard_usage_limit: float,
         degraded_discount: float,
         whale_request_size: float,
+        additional_p0_allowance: float
     ):
         self._budget_manager = budget_manager
         self._global_budget_max_capacity = global_budget_max_capacity
@@ -25,6 +27,7 @@ class DefaultPolicyService(BasePolicyService):
         self._hard_usage_limit = hard_usage_limit
         self._degraded_discount = degraded_discount
         self._whale_request_size = whale_request_size
+        self._additional_p0_allowance = additional_p0_allowance
 
     def execute(self, dto: InputPolicyServiceDTO) -> OutputPolicyServiceDTO:
         state = self._budget_manager.get_current_budget_usage()
@@ -45,6 +48,7 @@ class DefaultPolicyService(BasePolicyService):
             whale_global_threshold=self._whale_request_size * self._global_budget_max_capacity,
             whale_pipeline_threshold=self._whale_request_size
             * self._pipeline_budget_max_capacity[dto.pipeline],
+            additional_p0_allowance=self._additional_p0_allowance
         )
         decision = context.decide(dto.estimated_tokens, dto.priority)
 
@@ -58,6 +62,11 @@ class DefaultPolicyService(BasePolicyService):
 
     def _log_current_state(self, state):
         _LOGGER.info("-----------")
-        _LOGGER.info(f"CURRENT GLOBAL BUDGET USAGE: {state.current_global_budget_usage * 100 / self._global_budget_max_capacity}%")
-        pipelines_usage = [f"{p}={state.current_pipeline_budget_usage[p] * 100 / self._pipeline_budget_max_capacity[p]}%" for p in self._pipeline_budget_max_capacity]
+        _LOGGER.info(
+            f"CURRENT GLOBAL BUDGET USAGE: {state.current_global_budget_usage * 100 / self._global_budget_max_capacity}%"
+        )
+        pipelines_usage = [
+            f"{p}={state.current_pipeline_budget_usage[p] * 100 / self._pipeline_budget_max_capacity[p]}%"
+            for p in self._pipeline_budget_max_capacity
+        ]
         _LOGGER.info(f"CURRENT PIPELINE BUDGET USAGE: {pipelines_usage}")

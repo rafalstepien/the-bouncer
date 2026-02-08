@@ -17,7 +17,6 @@ class Container(containers.DeclarativeContainer):
     )
 
     wiring_config = containers.WiringConfiguration(packages=["src.api"])
-    # logger = providers.Singleton(logging.getLogger, name="BouncerLogger")
     request_validator_service = providers.Factory(
         DefaultRequestValidationService,
     )
@@ -36,6 +35,7 @@ class Container(containers.DeclarativeContainer):
         soft_usage_limit=config.policy.soft_usage_limit,
         degraded_discount=config.policy.degraded_discount,
         whale_request_size=config.policy.whale_request_size,
+        additional_p0_allowance=config.policy.additional_p0_allowance,
     )
 
     process_request = providers.Factory(

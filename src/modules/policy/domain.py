@@ -1,10 +1,11 @@
+import logging
 from dataclasses import dataclass
 
 from src.modules.commons import Priority
 from src.modules.policy.dto import PolicyDecision
-import logging
 
 LOW_PRIORITY_REQUESTS = (Priority.P1, Priority.P2)
+HIGH_PRIORITY_REQUESTS = (Priority.P0, )
 
 
 _LOGGER = logging.getLogger()
@@ -42,6 +43,7 @@ class PolicyContext:
     pipeline_budget: Budget
     whale_global_threshold: float
     whale_pipeline_threshold: float
+    additional_p0_allowance: float
 
     def decide(self, tokens: int, priority: Priority) -> PolicyDecision:
         """
@@ -49,7 +51,7 @@ class PolicyContext:
         Check global and then individual pipeline policy to decide whether to allow request.
         """
         if self._is_whale_request(tokens):
-            _LOGGER.warning("Whale request attempt rejected")
+            _LOGGER.warning("Whale request attempt rejected with {} tokens, while capacity is {}")
             return PolicyDecision.REJECT
 
         global_decision = self.global_budget.evaluate_request(tokens, priority)

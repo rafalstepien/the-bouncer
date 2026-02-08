@@ -23,3 +23,9 @@ tasks:
     desc: "Run the service"
     cmds:
       - python3 -m src.bootstrap.run_service
+
+
+  run-e2e-tests:
+    desc: "Run scenarios for end to end tests"
+    cmds:
+      - python3 -m tests.e2e
