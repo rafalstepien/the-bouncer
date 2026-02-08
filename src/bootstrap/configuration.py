@@ -12,6 +12,7 @@ class PolicySettings(BaseModel):
     soft_usage_limit: float = 0.80
     hard_usage_limit: float = 0.95
     degraded_discount: float = 0.5
+    whale_request_size: float = 0.2  # if the single request uses at least 20% of the budget - reject it
     
     
 class GlobalBudgetSettings(BaseModel):

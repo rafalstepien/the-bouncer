@@ -17,7 +17,6 @@ class DefaultRequestValidationService(BaseRequestValidationService):
         self._handle_retry_loop(dto)
 
     def _handle_retry_loop(self, dto: AdmitLLMRequestUseCaseInputDTO) -> None:
-        # TODO: validate if single request is greater than the whole budget
         request_hash = self._get_request_hash(dto)
         current_attempts = self._retry_tracker.get(request_hash, 0) + 1
         self._retry_tracker[request_hash] = current_attempts

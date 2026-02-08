@@ -7,6 +7,7 @@ from src.bootstrap.containers import Container
 
 def create_app() -> FastAPI:
     container = Container()
+    container.init_resources()
     container.config.from_pydantic(Settings())
     container.wire(modules=["src.api.endpoints"])
 
