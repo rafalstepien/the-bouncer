@@ -20,14 +20,17 @@ tasks:
       - uv run ruff format --check .
       - uv run mypy src
 
-
   run-service:
     desc: "Run the service"
     cmds:
-      - python3 -m src.bootstrap.run_service
-
+      - docker compose up
 
   run-e2e-tests:
     desc: "Run scenarios for end to end tests"
     cmds:
       - python3 -m tests.e2e
+
+  run-concurrent-overspend-test:
+    desc: "Run concurrent overspend test"
+    cmds:
+      - python3 -m tests.test_concurrent_overspend

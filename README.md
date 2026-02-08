@@ -1,41 +1,76 @@
 # the-bouncer
 <img width="350" height="350" alt="image" src="https://github.com/user-attachments/assets/5bd17350-9a1f-4776-bc84-ff65f2223c44" />
 
-## Limitations
-These things are possible as future extensions, but won't be implemented, because in the description, the service is expected to be "small" and there are time limit constraints.
 
-### Analytics collection 
-Metrics should be emited via HTTP to some aggregation service (eg. Prometheus) and later visualized (eg. Grafana).
-
-**Decision:** TBA
-
-### Counting consumed tokens
-We have two options to verify consumed tokens:
-  - Option 1: Based only on estimated tokens. Prioritizes efficiency (simpler and faster system). 
-  - Option 2: Based on estimated tokens + later updated by the actual number of tokens used. Requires pipelines to send additional data, requires the service to have additional endpoints, minimizes the risk of over/under estimation. 
-
-**Decision:** Verification will be based only on estimated tokens with a room for extension later (addressing "Failure thinking: token estimates are wrong") from the requirements. From the description I assume that the business goal is mainly to prevent unexpected spikes of costs and not counting the exact number of tokens consumed. Until we keep estimates good enough, we don't have to complicate system with additional dependencies and prioritize faster development, simpler onboarding and less infrastructure overhead.
-
-### Additional sophisticated mechanisms
-There is a room for "competing" mechanism, for example if the global budget is exhausted, `P0` request comes in, and other, low-prio requests are still running (`P1`, `P2`), then the service could kill/revoke running requests.
-There is a room for "borrowing" mechanism, for example if the budget of "monitoring" is exhausted, but "enrichment" has free tokens to use, then "monitoring" could use "enrichment" budget.
-
-**Decision:** I will not implement those mechanisms, but I will leave the room for implementation in the future. It's good to think about the possible future use cases, but the task does not explicitly state any of such problems for now. There are more "optimization strategies", but the decision can be made later if we implement the service and spot some inefficiencies.
-
-### Pipeline hierarchy
-I noticed, that some pipelines can be more important than others. For example "monitoring" could be more important than "ranking", because it's more important to have better visibility into how tenders change instead of displaying them in correct order in the UI. In other words: not detecting a change in requirement of tender that is in progress is more serious than displaying "10 good fitting tenders for your company" in incorrect order.
-
-**Decision:** Priority (P0/P1/P2) is the only ordering mechanism.
+## Table of contents
+- [System approach](#system-approach)
+  - [The flow](#the-admission-flow)
+  - [Testing strategy](#testing-strategy)
+- [Assumptions](#assumptions--limitations)
+- [How to run](#how-to-run)
 
 
-### What to do with degraded response 
-**Decision:** What to do with `ALLOW_DEGRADED` service response will be made in the pipelines. Service does not care if pipeline will use cheaper model or shorter prompt.
+## System Approach
+![System diagram](docs/system_diagram.png)
+
+The application is built using **Domain-Driven Design (DDD)** principles. To keep the codebase lean and maintainable, I’ve balanced strict abstraction with practical simplicity, avoiding "interface overkill" while keeping core logic isolated.
+
+### The Admission Flow
+
+The `admission` module acts as our primary orchestrator, coordinating three key domain services:
+
+* **Validation (Request Admission Domain):** Hashes incoming requests and stores them in a short-lived, app-level cache. This prevents "retry storms" from exhausting the budget when identical requests hit the pipeline in rapid succession.
+* **Policy (Cost Control Domain):** The "brain" of the system. It determines whether a request should be allowed based on current usage. It uses a locking mechanism to ensure thread safety and prevent race conditions.
+* **Budget Manager (Budget Manager Domain):** Responsible for managing budget snapshots and persisting updates.
+
+### Testing Strategy
+
+I implemented a multi-layered testing suite to ensure reliability without sacrificing development speed:
+
+* **Unit Tests:** In the `policy` and `budget_manager` modules, where the critical business logic resides.
+* **End-to-End (E2E) Tests:** Comprehensive scenarios covering various budget exhaustion levels, priorities (P0/P1/P2), and "heavy" requests that consume 10-20% of the budget at once.
+* **Concurrency Test:** A dedicated "overspend" test to verify system consistency under heavy load. This ensures that if we migrate from in-memory storage to Redis or Postgres, the safety mechanisms remain intact.
+
+---
+
+## Assumptions & Limitations
+
+To keep the service lightweight and focused, I made the following design choices:
+
+### Priority & Token Estimation
+
+* **Fixed Priorities:** Currently supports **P0, P1, and P2**. The architecture is extensible for more levels if needed.
+* **Estimate-First Logic:** The system optimizes for cost-spike prevention rather than exact token counting. This reduces infrastructure overhead and avoids extra dependencies. If higher precision is required later, we can add a "feedback" endpoint to report actual token usage post-execution.
+
+### Refinements for Future Iterations
+
+Due to the initial scope, the following "pro-tier" features were omitted but could be added later:
+
+* **Request Revocation:** The ability to "kill" active low-priority (P1/P2) tasks if a critical P0 request arrives while the budget is full.
+* **Budget Shifting:** Allowing a depleted budget (e.g., "monitoring") to borrow from a surplus budget (e.g., "enrichment").
+
+### Error Handling: "Fail Open"
+
+The service is currently configured to **fail open**. If the admission service encounters an error or goes down, the pipeline defaults to allowing the request.
+
+* **Priority:** Business continuity.
+* **Alternative:** A "fail closed" approach would prioritize budget safety but could halt all pipeline processing if the service is unreachable.
 
 
-### What to do when the service is down
-We have two options there:
-  - Option 1: Fail open. Pipelines send requests without the service as midddleman (priority: continuity of work). Disadvantage: we may exceed the budget and don't know about it.
-  - Option 2: Fail closed. Pipelines can't send any request without the service (priority: budget safety). Disadvantage: when the service is down, pipelines can't process.
+---
 
-**Decision:** On the application level in case of any error inside app logic we allow the request without tracking (fail open)
 
+## How to run
+
+
+### With task
+1. [Install task](https://taskfile.dev/docs/installation)
+2. Run service `task run-service`
+3. Run E2E tests (service must be up) `task run-e2e-tests`
+4. Run concurrent overspend test `task run-concurrent-overspend-test`
+
+
+### Without task
+1. Run service `docker compose up`
+2. Run E2E tests (service must be up) `python3 -m tests.e2e`
+3. Run concurrent overspend test `python3 -m tests.test_concurrent_overspend`

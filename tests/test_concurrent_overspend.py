@@ -76,6 +76,7 @@ async def test_budget_is_not_overspent_under_concurrency():
 
     print(f"Total allowed: {len(allowed)}")
     assert len(allowed) <= 3
+    print("✅ PASSED")
 
 
 if __name__ == "__main__":
