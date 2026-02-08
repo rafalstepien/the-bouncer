@@ -14,7 +14,7 @@ router = APIRouter()
 _LOGGER = logging.getLogger()
 
 
-@router.post("/v1/evaluate", response_model=AdmissionResponse)
+@router.post("/v1/evaluate", response_model=AdmissionResponse, response_model_exclude_none=True)
 @inject
 async def evaluate(
     request: AdmissionRequest,
@@ -38,3 +38,9 @@ def _map_request_to_use_case_dto(request: AdmissionRequest) -> AdmitLLMRequestUs
         estimated_tokens=request.estimated_tokens,
         request_id=request.request_id,
     )
+
+
+@router.post("/health")
+@inject
+async def healthcheck(request):
+    return Response(status_code=status.HTTP_200_OK)
