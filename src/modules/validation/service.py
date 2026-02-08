@@ -1,5 +1,6 @@
 import hashlib
-from datetime import timedelta
+from typing import Any
+
 from cachetools import TTLCache
 
 from src.modules.admission.dto import AdmitLLMRequestUseCaseInputDTO
@@ -10,7 +11,7 @@ from src.modules.validation.interface import BaseRequestValidationService
 class DefaultRequestValidationService(BaseRequestValidationService):
     def __init__(self, max_retries: int):
         self._max_retries = max_retries
-        self._retry_tracker = TTLCache(maxsize=10_000, ttl=300)
+        self._retry_tracker: TTLCache[str, Any] = TTLCache(maxsize=10_000, ttl=300)
 
     async def validate(self, dto: AdmitLLMRequestUseCaseInputDTO) -> None:
         self._handle_retry_loop(dto)
@@ -32,4 +33,4 @@ class DefaultRequestValidationService(BaseRequestValidationService):
 
 
 class TestRequestValidationService(BaseRequestValidationService):
-    async def validate(self, dto): ...
+    async def validate(self, dto: AdmitLLMRequestUseCaseInputDTO) -> None: ...

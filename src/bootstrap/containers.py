@@ -3,10 +3,10 @@ import logging.config
 from dependency_injector import containers, providers
 
 from src.bootstrap.configuration import LOGGING_CONFIG
-from src.modules.admission.use_case import AdmitLLMRequestUseCase
-from src.modules.budget_manager.service import InMemoryBudgetManager
-from src.modules.policy.service import DefaultPolicyService
-from src.modules.validation.service import DefaultRequestValidationService
+from src.modules.admission import AdmitLLMRequestUseCase
+from src.modules.budget_manager import InMemoryBudgetManager
+from src.modules.policy import DefaultPolicyService
+from src.modules.validation import DefaultRequestValidationService
 
 
 class Container(containers.DeclarativeContainer):

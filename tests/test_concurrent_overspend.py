@@ -1,12 +1,11 @@
 import asyncio
 import threading
 
-from src.modules.admission.dto import AdmitLLMRequestUseCaseInputDTO
-from src.modules.admission.use_case import AdmitLLMRequestUseCase
-from src.modules.budget_manager.service import InMemoryBudgetManager
+from src.modules.admission import AdmitLLMRequestUseCase, AdmitLLMRequestUseCaseInputDTO
+from src.modules.budget_manager import InMemoryBudgetManager
 from src.modules.commons import PolicyDecision
-from src.modules.policy.service import DefaultPolicyService
-from src.modules.validation.service import TestRequestValidationService
+from src.modules.policy import DefaultPolicyService
+from src.modules.validation import TestRequestValidationService
 
 GLOBAL_BUDGET_MAX_CAPACITY = 100
 PIPELINE_BUDGET_MAX_CAPACITY = 100

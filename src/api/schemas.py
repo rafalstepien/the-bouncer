@@ -1,4 +1,5 @@
 from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -25,4 +26,4 @@ class AdmissionRequest(BaseModel):
 
 class AdmissionResponse(BaseModel):
     decision: AdmissionDecision
-    context: dict | None = None
+    context: dict[str, Any] | None = None

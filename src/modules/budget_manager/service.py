@@ -1,4 +1,5 @@
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
 
@@ -20,7 +21,7 @@ class InMemoryBudgetManager(BaseBudgetManager):
     def __init__(
         self,
         global_budget_max_capacity: int,
-        pipeline_budget_max_capacity: dict[str, int],
+        pipeline_budget_max_capacity: dict[SourcePipeline, int],
         token_refill_interval_seconds: int,
     ):
         self._global_budget_max_capacity = global_budget_max_capacity
@@ -29,12 +30,14 @@ class InMemoryBudgetManager(BaseBudgetManager):
 
         self._last_updated: datetime | None = None
         self._global_budget_usage: int = 0
-        self._pipeline_budget_usage: dict[str, int] = {p: 0 for p in self._pipeline_budget_max_capacity}
+        self._pipeline_budget_usage: dict[SourcePipeline, int] = {
+            p: 0 for p in self._pipeline_budget_max_capacity
+        }
 
         self._lock = threading.Lock()
 
     @contextmanager
-    def with_lock(self):
+    def with_lock(self) -> Iterator[None]:
         """Ensure atomic updates."""
         with self._lock:
             yield
@@ -50,7 +53,7 @@ class InMemoryBudgetManager(BaseBudgetManager):
         self._global_budget_usage += tokens_used
         self._pipeline_budget_usage[pipeline] += tokens_used
 
-    def _refill_tokens(self):
+    def _refill_tokens(self) -> None:
         """
         Check if time elapsed from last update exceeds the refill interval.
         If it does - reset the budget.

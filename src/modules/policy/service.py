@@ -1,8 +1,9 @@
 import logging
 
-from src.modules.budget_manager.interface import BaseBudgetManager
+from src.modules.budget_manager import BaseBudgetManager
+from src.modules.commons import PolicyDecision
 from src.modules.policy.domain import Budget, PolicyContext
-from src.modules.policy.dto import InputPolicyServiceDTO, OutputPolicyServiceDTO, PolicyDecision
+from src.modules.policy.dto import InputPolicyServiceDTO, OutputPolicyServiceDTO
 from src.modules.policy.exceptions import InvalidPipelineError
 from src.modules.policy.interface import BasePolicyService
 
@@ -58,18 +59,18 @@ class DefaultPolicyService(BasePolicyService):
             if decision == PolicyDecision.ALLOW:
                 self._budget_manager.update_usage(dto.estimated_tokens, dto.pipeline)
             elif decision == PolicyDecision.ALLOW_DEGRADED:
-                tokens_used = dto.estimated_tokens * self._degraded_discount
+                tokens_used = int(dto.estimated_tokens * self._degraded_discount)
                 self._budget_manager.update_usage(tokens_used, dto.pipeline)
 
             return OutputPolicyServiceDTO(decision=decision)
 
-    def _log_current_state(self, state):
-        _LOGGER.info("-----------")
-        _LOGGER.info(
-            f"CURRENT GLOBAL BUDGET USAGE: {state.current_global_budget_usage * 100 / self._global_budget_max_capacity}%"
-        )
-        pipelines_usage = [
-            f"{p}={state.current_pipeline_budget_usage[p] * 100 / self._pipeline_budget_max_capacity[p]}%"
-            for p in self._pipeline_budget_max_capacity
-        ]
-        _LOGGER.info(f"CURRENT PIPELINE BUDGET USAGE: {pipelines_usage}")
+    # def _log_current_state(self, state):
+    #     _LOGGER.info("-----------")
+    #     _LOGGER.info(
+    #         f"CURRENT GLOBAL BUDGET USAGE: {state.current_global_budget_usage * 100 / self._global_budget_max_capacity}%"
+    #     )
+    #     pipelines_usage = [
+    #         f"{p}={state.current_pipeline_budget_usage[p] * 100 / self._pipeline_budget_max_capacity[p]}%"
+    #         for p in self._pipeline_budget_max_capacity
+    #     ]
+    #     _LOGGER.info(f"CURRENT PIPELINE BUDGET USAGE: {pipelines_usage}")

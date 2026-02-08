@@ -1,12 +1,13 @@
 import logging
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 
 from src.api.schemas import AdmissionDecision, AdmissionRequest, AdmissionResponse
 from src.bootstrap.containers import Container
 from src.modules.admission.dto import AdmitLLMRequestUseCaseInputDTO
 from src.modules.admission.use_case import AdmitLLMRequestUseCase
+from src.modules.commons import Priority, SourcePipeline
 from src.modules.policy.exceptions import InvalidPipelineError
 
 router = APIRouter()
@@ -19,11 +20,11 @@ _LOGGER = logging.getLogger()
 async def evaluate(
     request: AdmissionRequest,
     use_case: AdmitLLMRequestUseCase = Depends(Provide[Container.process_request]),
-) -> AdmissionResponse:
+) -> AdmissionResponse | Response:
     dto = _map_request_to_use_case_dto(request)
     try:
         admission_response = await use_case.execute(dto)
-        return AdmissionResponse(decision=admission_response.decision)
+        return AdmissionResponse(decision=AdmissionDecision(admission_response.decision))
     except InvalidPipelineError as e:
         return Response(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
     except Exception as e:
@@ -33,8 +34,8 @@ async def evaluate(
 
 def _map_request_to_use_case_dto(request: AdmissionRequest) -> AdmitLLMRequestUseCaseInputDTO:
     return AdmitLLMRequestUseCaseInputDTO(
-        pipeline=request.pipeline,
-        priority=request.priority,
+        pipeline=SourcePipeline(request.pipeline),
+        priority=Priority(request.priority),
         estimated_tokens=request.estimated_tokens,
         request_id=request.request_id,
     )
@@ -42,5 +43,5 @@ def _map_request_to_use_case_dto(request: AdmissionRequest) -> AdmitLLMRequestUs
 
 @router.post("/health")
 @inject
-async def healthcheck(request):
+async def healthcheck(request: Request) -> Response:
     return Response(status_code=status.HTTP_200_OK)

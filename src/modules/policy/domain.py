@@ -1,8 +1,7 @@
 import logging
 from dataclasses import dataclass
 
-from src.modules.commons import Priority
-from src.modules.policy.dto import PolicyDecision
+from src.modules.commons import PolicyDecision, Priority
 
 LOW_PRIORITY_REQUESTS = (Priority.P1, Priority.P2)
 HIGH_PRIORITY_REQUESTS = (Priority.P0,)

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from contextlib import AbstractContextManager
 
 from src.modules.budget_manager.dto import OutputCurrentBudgetDTO
 from src.modules.commons import SourcePipeline
@@ -12,4 +13,4 @@ class BaseBudgetManager(ABC):
     def get_current_budget_usage(self) -> OutputCurrentBudgetDTO: ...
 
     @abstractmethod
-    def with_lock(self): ...
+    def with_lock(self) -> AbstractContextManager[None]: ...

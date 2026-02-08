@@ -1,6 +1,6 @@
-from src.modules.admission.dto import AdmitLLMRequestUseCaseInputDTO, AdmitLLMRequestUseCaseOutputDTO
-from src.modules.policy.interface import BasePolicyService
-from src.modules.validation.interface import BaseRequestValidationService
+from src.modules.admission import AdmitLLMRequestUseCaseInputDTO, AdmitLLMRequestUseCaseOutputDTO
+from src.modules.policy import BasePolicyService, InputPolicyServiceDTO
+from src.modules.validation import BaseRequestValidationService
 
 
 class AdmitLLMRequestUseCase:
@@ -10,5 +10,15 @@ class AdmitLLMRequestUseCase:
 
     async def execute(self, dto: AdmitLLMRequestUseCaseInputDTO) -> AdmitLLMRequestUseCaseOutputDTO:
         await self._request_validator.validate(dto)
-        policy_response = await self._policy_service.execute(dto)
+        policy_response = await self._policy_service.execute(_map_use_case_dto_to_policy_service_dto(dto))
         return AdmitLLMRequestUseCaseOutputDTO(decision=policy_response.decision)
+
+
+def _map_use_case_dto_to_policy_service_dto(
+    use_case_dto: AdmitLLMRequestUseCaseInputDTO,
+) -> InputPolicyServiceDTO:
+    return InputPolicyServiceDTO(
+        estimated_tokens=use_case_dto.estimated_tokens,
+        priority=use_case_dto.priority,
+        pipeline=use_case_dto.pipeline,
+    )

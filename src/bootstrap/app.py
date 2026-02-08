@@ -12,7 +12,7 @@ def create_app() -> FastAPI:
     container.wire(modules=["src.api.endpoints"])
 
     app = FastAPI(title="Minerva Token Gatekeeper")
-    app.container = container
+    setattr(app, "container", container)
 
     app.include_router(router)
     return app
