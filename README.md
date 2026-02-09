@@ -74,3 +74,17 @@ The service is currently configured to **fail open**. If the admission service e
 1. Run service `docker compose up`
 2. Run E2E tests (service must be up) `python3 -m tests.e2e`
 3. Run concurrent overspend test `python3 -m tests.test_concurrent_overspend`
+
+
+
+## Next steps with more time
+- Implement Prometheus and Grafana for better observability and analytics and collect the following metrics:
+  - total number of requests
+  - % of allowed, degraded, rejected and errors
+  - bucket utilization %
+  - latency of a request
+  - alert when P1/P2 starts getting ALLOW_DEGRADED
+- Implement storing budget in Redis to enable horizontal scaling
+- Differentiate between input/output/cached tokens
+- Implement a mechanism to update the service on the actual number of tokens used by pipeline
+

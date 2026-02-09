@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import dataclass
 from typing import Callable
 
@@ -32,6 +33,7 @@ async def fill_pipeline_to_percent(
                     "pipeline": pipeline_name if pipeline_name != "global" else "monitoring",
                     "priority": "P0",
                     "estimated_tokens": CHUNK_SIZE,
+                    "request_id": str(uuid.uuid4()),
                 },
             )
 

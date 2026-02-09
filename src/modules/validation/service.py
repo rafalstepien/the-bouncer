@@ -28,7 +28,7 @@ class DefaultRequestValidationService(BaseRequestValidationService):
             )
 
     def _get_request_hash(self, dto: AdmitLLMRequestUseCaseInputDTO) -> str:
-        payload = f"{dto.pipeline}-{dto.priority}-{dto.estimated_tokens}"
+        payload = f"{dto.pipeline}-{dto.priority}-{dto.estimated_tokens}-{dto.request_id or ''}"
         return hashlib.md5(payload.encode()).hexdigest()
 
 

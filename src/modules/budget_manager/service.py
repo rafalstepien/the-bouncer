@@ -6,7 +6,9 @@ from datetime import datetime
 from src.modules.budget_manager.dto import OutputCurrentBudgetDTO
 from src.modules.budget_manager.interface import BaseBudgetManager
 from src.modules.commons import SourcePipeline
+import logging
 
+_LOGGER = logging.getLogger()
 
 class InMemoryBudgetManager(BaseBudgetManager):
     """

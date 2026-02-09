@@ -30,7 +30,7 @@ class PipelineBudgetSettings(BaseModel):
 
 
 class BudgetSettings(BaseModel):
-    token_refill_interval_seconds: int = 5  # 60 * 60 * 24  # 1 day
+    token_refill_interval_seconds: int = 30
     global_settings: GlobalBudgetSettings = GlobalBudgetSettings()
     pipeline_settings: PipelineBudgetSettings = PipelineBudgetSettings()
 

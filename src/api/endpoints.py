@@ -42,6 +42,5 @@ def _map_request_to_use_case_dto(request: AdmissionRequest) -> AdmitLLMRequestUs
 
 
 @router.post("/health")
-@inject
 async def healthcheck(request: Request) -> Response:
     return Response(status_code=status.HTTP_200_OK)

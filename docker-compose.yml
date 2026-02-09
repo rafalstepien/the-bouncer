@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fastapi_service
+    container_name: the-bouncer
     ports:
       - "8000:8000"
     environment:

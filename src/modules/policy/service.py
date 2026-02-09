@@ -35,6 +35,7 @@ class DefaultPolicyService(BasePolicyService):
         whale_threshold_tokens = self._whale_request_size * self._global_budget_max_capacity
         with self._budget_manager.with_lock():
             state = self._budget_manager.get_current_budget_usage()
+            self._log_current_state(state)
             try:
                 context = PolicyContext(
                     global_budget=Budget(
@@ -64,13 +65,13 @@ class DefaultPolicyService(BasePolicyService):
 
             return OutputPolicyServiceDTO(decision=decision)
 
-    # def _log_current_state(self, state):
-    #     _LOGGER.info("-----------")
-    #     _LOGGER.info(
-    #         f"CURRENT GLOBAL BUDGET USAGE: {state.current_global_budget_usage * 100 / self._global_budget_max_capacity}%"
-    #     )
-    #     pipelines_usage = [
-    #         f"{p}={state.current_pipeline_budget_usage[p] * 100 / self._pipeline_budget_max_capacity[p]}%"
-    #         for p in self._pipeline_budget_max_capacity
-    #     ]
-    #     _LOGGER.info(f"CURRENT PIPELINE BUDGET USAGE: {pipelines_usage}")
+    def _log_current_state(self, state):
+        _LOGGER.info("-----------")
+        _LOGGER.info(
+            f"CURRENT GLOBAL BUDGET USAGE: {round(state.current_global_budget_usage * 100 / self._global_budget_max_capacity)}%"
+        )
+        pipelines_usage = [
+            f"{p}={round(state.current_pipeline_budget_usage[p] * 100 / self._pipeline_budget_max_capacity[p])}%"
+            for p in self._pipeline_budget_max_capacity
+        ]
+        _LOGGER.info(f"CURRENT PIPELINE BUDGET USAGE: {pipelines_usage}")
