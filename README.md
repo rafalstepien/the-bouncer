@@ -75,6 +75,10 @@ The service is currently configured to **fail open**. If the admission service e
 2. Run E2E tests (service must be up) `python3 -m tests.e2e`
 3. Run concurrent overspend test `python3 -m tests.test_concurrent_overspend`
 
+### Example request (when service is up)
+```sh
+ curl -X POST -H "Content-Type: application/json" -d '{"pipeline":"monitoring","priority":"P1","estimated_tokens":10000, "request_id": "1234"}' http://localhost:8000/v1/evaluate
+```
 
 
 ## Next steps with more time
